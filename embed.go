@@ -8,6 +8,8 @@ import (
 )
 
 func GetEmbed(record *libgen.Book) (embed *discordgo.MessageEmbed) {
+	//fmt.Println("Creating embed for: ", record.Title)
+
 	filesize, err := strconv.Atoi(record.Filesize)
 	if err != nil {
 		fmt.Println(err)

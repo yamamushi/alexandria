@@ -24,7 +24,7 @@ func (adb *AlexandriaDB) CloseDB() (err error) {
 	if err != nil {
 		return err
 	}
-	return
+	return nil
 }
 
 type BookRecord struct {

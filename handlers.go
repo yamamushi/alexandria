@@ -10,6 +10,8 @@ var (
 	commandHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
 
 		"library": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			//fmt.Println("Received command: ", i.ApplicationCommandData().Name)
+			//fmt.Println("Starting Search")
 			// Access options in the order provided by the user.
 			options := i.ApplicationCommandData().Options
 
@@ -39,6 +41,7 @@ var (
 			output := SearchLibgen(searchInput)
 
 			if len(output) == 0 {
+				fmt.Println("No results found for: ", searchInput)
 				err := s.InteractionResponseDelete(i.Interaction)
 				if err != nil {
 					fmt.Println("could not delete interaction" + err.Error())
@@ -47,6 +50,7 @@ var (
 				return
 			}
 
+			// Create an embed for the first result
 			embed := GetEmbed(output[0])
 
 			var searchResultsDropdown []discordgo.SelectMenuOption
@@ -76,6 +80,8 @@ var (
 					filesize = 0
 				}
 
+				//fmt.Println("Creating dropdown option for: ", result.Title)
+
 				searchResultsDropdown = append(searchResultsDropdown, discordgo.SelectMenuOption{
 
 					Label: result.Title,
@@ -85,6 +91,7 @@ var (
 					// You can also make it a default option, but in this case we won't.
 					Default:     false,
 					Description: fmt.Sprintf("%s - %s - %s - %s", result.Author, result.Year, result.Extension, prettyByteSize(filesize)),
+					Emoji:       discordgo.ComponentEmoji{Name: "📚"},
 				})
 			}
 			err = adb.CloseDB()
@@ -105,7 +112,7 @@ var (
 
 			err = s.InteractionResponseDelete(i.Interaction)
 			if err != nil {
-				fmt.Println("could not delete interaction" + err.Error())
+				fmt.Println("could not delete response interaction" + err.Error())
 			}
 
 			resultOutput := discordgo.MessageSend{
@@ -124,13 +131,21 @@ var (
 
 func SelectSearchResult(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	//fmt.Println(i.Message.ID, i.Interaction.MessageComponentData().CustomID)
+	adb := AlexandriaDB{}
+	err := adb.OpenDB()
+	if err != nil {
+		return
+	}
+	defer func(adb *AlexandriaDB) {
+		err := adb.CloseDB()
+		if err != nil {
+			fmt.Println(err)
+		}
+	}(&adb)
 
 	for _, value := range i.Interaction.MessageComponentData().Values {
 		// if i.Message.Interaction.Member.User.ID != i.Interaction.Member.User.ID // Not working as intended
 		//fmt.Println("Value: ", value)
-		adb := AlexandriaDB{}
-		adb.OpenDB()
-		defer adb.CloseDB()
 		record, err := adb.GetRecord(value)
 		if err != nil {
 			fmt.Println(err)
@@ -141,9 +156,13 @@ func SelectSearchResult(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			fmt.Println("error updating embed: " + err.Error())
 			return
 		}
-		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+		err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			// Ignore type for now, they will be discussed in "responses"
 			Type: discordgo.InteractionResponseUpdateMessage,
 		})
+		if err != nil {
+			fmt.Println("error updating interaction: " + err.Error())
+			return
+		}
 	}
 }

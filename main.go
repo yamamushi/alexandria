@@ -46,7 +46,12 @@ func main() {
 		fmt.Println("error creating Discord session,", err)
 		return
 	}
-	defer dg.Close()
+	defer func(dg *discordgo.Session) {
+		err := dg.Close()
+		if err != nil {
+			panic(err)
+		}
+	}(dg)
 
 	// In this example, we only care about receiving message events.
 	dg.Identify.Intents = discordgo.IntentsGuildMessages
@@ -122,5 +127,8 @@ func main() {
 	}
 
 	// Cleanly close down the Discord session.
-	_ = dg.Close()
+	err = dg.Close()
+	if err != nil {
+		panic(err)
+	}
 }
