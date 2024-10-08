@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/asdine/storm/v3"
-	"github.com/ciehanski/libgen-cli/libgen"
 	"go.etcd.io/bbolt"
 	"time"
 )
@@ -29,18 +28,18 @@ func (adb *AlexandriaDB) CloseDB() (err error) {
 
 type BookRecord struct {
 	ID   string `storm:"id"`
-	Data libgen.Book
+	Data Book
 }
 
-func (adb *AlexandriaDB) StoreRecord(record *libgen.Book) (err error) {
-	err = adb.db.Save(&BookRecord{ID: record.Md5, Data: *record})
+func (adb *AlexandriaDB) StoreRecord(record *Book) (err error) {
+	err = adb.db.Save(&BookRecord{ID: record.ID, Data: *record})
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (adb *AlexandriaDB) GetRecord(id string) (record *libgen.Book, err error) {
+func (adb *AlexandriaDB) GetRecord(id string) (record *Book, err error) {
 	var bookRecord BookRecord
 	err = adb.db.One("ID", id, &bookRecord)
 	if err != nil {

@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"github.com/bwmarrin/discordgo"
-	"strconv"
 )
 
 var (
@@ -38,9 +37,10 @@ var (
 			})
 
 			// Take our message and pass it into parser
-			output := SearchLibgen(searchInput)
+			output, err := gsSearch(searchInput)
 
-			if len(output) == 0 {
+			if len(output) == 0 || err != nil {
+				fmt.Println("error: " + err.Error())
 				fmt.Println("No results found for: ", searchInput)
 				err := s.InteractionResponseDelete(i.Interaction)
 				if err != nil {
@@ -55,12 +55,14 @@ var (
 
 			var searchResultsDropdown []discordgo.SelectMenuOption
 			adb := AlexandriaDB{}
-			err := adb.OpenDB()
+			err = adb.OpenDB()
 			if err != nil {
 				fmt.Println(err)
 				return // Exit if we can't open the database
 			}
-			for _, result := range output {
+
+			var ids []string = make([]string, len(output))
+			for count, result := range output {
 				err = adb.StoreRecord(result)
 				if err != nil {
 					fmt.Println("could not store record: " + err.Error())
@@ -74,25 +76,33 @@ var (
 					result.Author = result.Author[:70]
 				}
 
-				filesize, err := strconv.Atoi(result.Filesize)
+				/*filesize, err := strconv.Atoi(result.Filesize)
 				if err != nil {
 					fmt.Println(err)
 					filesize = 0
-				}
+				}*/
 
 				//fmt.Println("Creating dropdown option for: ", result.Title)
 
+				if StringInSlice(result.ID, ids) {
+					continue
+				}
 				searchResultsDropdown = append(searchResultsDropdown, discordgo.SelectMenuOption{
 
 					Label: result.Title,
 					// As with components, this things must have their own unique "id" to identify which is which.
 					// In this case such id is Value field.
-					Value: result.Md5,
+					Value: result.ID,
 					// You can also make it a default option, but in this case we won't.
-					Default:     false,
-					Description: fmt.Sprintf("%s - %s - %s - %s", result.Author, result.Year, result.Extension, prettyByteSize(filesize)),
-					Emoji:       discordgo.ComponentEmoji{Name: "📚"},
+					Default: false,
+					Description: truncate(fmt.Sprintf("%s - %s - %s - %s",
+						result.Author, result.Year, result.Extension, result.Filesize), 24),
+					Emoji: &discordgo.ComponentEmoji{Name: "📚"},
 				})
+				ids = append(ids, result.ID)
+				if count == 10 {
+					break
+				}
 			}
 			err = adb.CloseDB()
 			if err != nil {
@@ -112,7 +122,7 @@ var (
 
 			err = s.InteractionResponseDelete(i.Interaction)
 			if err != nil {
-				fmt.Println("could not delete response interaction" + err.Error())
+				fmt.Println("could not delete response interaction: " + err.Error())
 			}
 
 			resultOutput := discordgo.MessageSend{

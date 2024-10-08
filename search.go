@@ -1,20 +1,15 @@
 package main
 
-import (
-	"fmt"
-	"github.com/ciehanski/libgen-cli/libgen"
-	"net/url"
-)
-
+/*
 // SearchLibgen searches libgen for a provided title
 func SearchLibgen(title string) []*libgen.Book {
 	//fmt.Println("Searching libgen for: ", title)
 	// SearchMirror: libgen.GetWorkingMirror(libgen.SearchMirrors)
-	results, err := libgen.Search(&libgen.SearchOptions{Query: title, SearchMirror: url.URL{Host: "libgen.rs", Scheme: "https"}, Results: 10}) //, Extension: []string{"pdf"}})
-	if err != nil {
-		fmt.Println("Error searching libgen: ", err)
+	//results, err := libgen.Search(&libgen.SearchOptions{Query: title, SearchMirror: url.URL{Host: "libgen.gs", Scheme: "https", Path: "index.php"}, Results: 10}) //, Extension: []string{"pdf"}})
+	//if err != nil {
+	//	fmt.Println("Error searching libgen: ", err)
 		//return results
-	}
+	//}
 	/*
 		fmt.Println(fmt.Sprintf("Search Results for %s", title))
 
@@ -42,6 +37,7 @@ func SearchLibgen(title string) []*libgen.Book {
 			fmt.Println("--------------------------------------------------")
 		}
 
-	*/
+
 	return results
 }
+*/

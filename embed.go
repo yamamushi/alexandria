@@ -3,18 +3,16 @@ package main
 import (
 	"fmt"
 	"github.com/bwmarrin/discordgo"
-	"github.com/ciehanski/libgen-cli/libgen"
-	"strconv"
 )
 
-func GetEmbed(record *libgen.Book) (embed *discordgo.MessageEmbed) {
+func GetEmbed(record *Book) (embed *discordgo.MessageEmbed) {
 	//fmt.Println("Creating embed for: ", record.Title)
 
-	filesize, err := strconv.Atoi(record.Filesize)
+	/*filesize, err := strconv.Atoi(record.Filesize)
 	if err != nil {
 		fmt.Println(err)
 		filesize = 0
-	}
+	}*/
 
 	description := "" +
 		"**Title:** " + record.Title + "\n" +
@@ -26,9 +24,10 @@ func GetEmbed(record *libgen.Book) (embed *discordgo.MessageEmbed) {
 		//"**Edition:** " + output[0].Edition + "\n" +
 		"**Language:** " + record.Language + "\n" +
 		"**Extension:** " + record.Extension + "\n" +
-		"**Filesize:** " + prettyByteSize(filesize) + "\n"
+		//	"**Filesize:** " + prettyByteSize(filesize) + "\n"
+		"**Filesize:** " + record.Filesize + "\n"
 
-	cover := discordgo.MessageEmbedThumbnail{URL: fmt.Sprintf("https://library.lol/covers/%s", record.CoverURL)}
+	cover := discordgo.MessageEmbedThumbnail{URL: record.CoverURL}
 	footer := discordgo.MessageEmbedFooter{
 		Text:         "Search results powered by libgen",
 		IconURL:      "https://i.imgur.com/C4RNeln.png",
@@ -36,7 +35,7 @@ func GetEmbed(record *libgen.Book) (embed *discordgo.MessageEmbed) {
 	}
 	// Create our discordgo embed
 	embed = &discordgo.MessageEmbed{
-		URL:         fmt.Sprintf("https://library.lol/main/%s", record.Md5),
+		URL:         fmt.Sprintf("https://libgen.gs/edition.php?id=%s", record.ID),
 		Title:       "**" + record.Title + "**",
 		Description: description,
 		Thumbnail:   &cover,

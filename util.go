@@ -16,3 +16,20 @@ func prettyByteSize(b int) string {
 	}
 	return fmt.Sprintf("%.1fYiB", bf)
 }
+
+func truncate(s string, maxLen int) string {
+	if len(s) > maxLen {
+		return s[:maxLen]
+	}
+	return s
+}
+
+// StringInSlice checks if a given string exists in a slice of strings.
+func StringInSlice(str string, list []string) bool {
+	for _, v := range list {
+		if v == str {
+			return true
+		}
+	}
+	return false
+}
