@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -35,7 +34,7 @@ func GetEmbed(record *Book) (embed *discordgo.MessageEmbed) {
 	}
 	// Create our discordgo embed
 	embed = &discordgo.MessageEmbed{
-		URL:         fmt.Sprintf("https://libgen.gs/edition.php?id=%s", record.ID),
+		URL:         record.BookURL,
 		Title:       "**" + record.Title + "**",
 		Description: description,
 		Thumbnail:   &cover,

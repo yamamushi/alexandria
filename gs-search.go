@@ -19,6 +19,7 @@ type Book struct {
 	Pages     string
 	Filesize  string
 	Extension string
+	BookURL   string
 	CoverURL  string
 	ID        string
 }
@@ -83,27 +84,57 @@ func gsSearch(query string) ([]*Book, error) {
 		filesize := strings.TrimSpace(s.Find("td").Eq(7).Text())  // Filesize is in the eighth <td>
 		extension := strings.TrimSpace(s.Find("td").Eq(8).Text()) // Extension is in the ninth <td>
 
-		// Extract the ID from the href attribute (e.g., href="edition.php?id=3471890")
-		href, exists := titleTag.Attr("href")
-		if exists {
-			// Extract the numeric ID from the href (e.g., edition.php?id=3471890 -> 3471890)
-			id := strings.Split(href, "=")[1]
+		// Variable to store the final URL
+		var bookURL string
+		baseURL := "https://libgen.gs/"
 
-			// Add the book to the list if it has a title and ID
-			if title != "" && id != "" {
-				books = append(books, &Book{
-					Title:     title,
-					Author:    author,
-					Publisher: publisher,
-					Year:      year,
-					Language:  language,
-					Pages:     pages,
-					Filesize:  filesize,
-					Extension: extension,
-					CoverURL:  fmt.Sprintf("https://libgen.gs%s", coverURL), // Construct full cover URL
-					ID:        id,
-				})
+		// Check for both edition.php and series.php links
+		var editionURL, seriesURL string
+
+		s.Find("a").Each(func(index int, link *goquery.Selection) {
+			href, hrefExists := link.Attr("href")
+			if hrefExists {
+				// Check if the link contains "edition.php"
+				if strings.Contains(href, "edition.php") {
+					editionURL = baseURL + href
+				}
+				// Check if the link contains "series.php"
+				if strings.Contains(href, "series.php") {
+					seriesURL = baseURL + href
+				}
 			}
+		})
+
+		// Prioritize edition.php if found; otherwise, use series.php
+		if editionURL != "" {
+			bookURL = editionURL
+		} else if seriesURL != "" {
+			bookURL = seriesURL
+		}
+
+		// Extract the ID from the edition link or fallback to series link
+		id := ""
+		if editionURL != "" {
+			id = strings.Split(editionURL, "=")[1]
+		} else if seriesURL != "" {
+			id = strings.Split(seriesURL, "=")[1]
+		}
+
+		// Add the book to the list if it has a title and ID
+		if title != "" && id != "" {
+			books = append(books, &Book{
+				Title:     title,
+				Author:    author,
+				Publisher: publisher,
+				Year:      year,
+				Language:  language,
+				Pages:     pages,
+				Filesize:  filesize,
+				Extension: extension,
+				CoverURL:  fmt.Sprintf("https://libgen.gs%s", coverURL), // Construct full cover URL
+				ID:        id,
+				BookURL:   bookURL, // Set the correct URL
+			})
 		}
 	})
 
