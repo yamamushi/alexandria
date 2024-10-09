@@ -40,7 +40,9 @@ var (
 			output, err := gsSearch(searchInput)
 
 			if len(output) == 0 || err != nil {
-				fmt.Println("error: " + err.Error())
+				if err != nil {
+					fmt.Println("error: " + err.Error())
+				}
 				fmt.Println("No results found for: ", searchInput)
 				err := s.InteractionResponseDelete(i.Interaction)
 				if err != nil {
